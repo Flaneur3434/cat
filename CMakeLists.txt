@@ -20,9 +20,11 @@ include_directories(PEGTL/include)
 
 # Create the executable
 add_executable(cat-cc cat-cc.cpp)
+add_executable(cat-grammar-analysis cat-grammar-analysis.cpp)
 
 # Link the PEGTL library to the executable
 target_link_libraries(cat-cc taocpp::pegtl)
+target_link_libraries(cat-grammar-analysis taocpp::pegtl)
 
 # Set the output directory for the executable
 set_target_properties(cat-cc PROPERTIES
