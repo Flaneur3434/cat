@@ -16,6 +16,26 @@ There is a 1:1 matching for lines written in Cat and C, allowing the Cat transpi
 
 https://github.com/hodefoting/oi/
 
+## Building
+
+First you need to build PEGLT
+```
+$ cd PEGLT
+$ mkdir build
+$ cd build
+$ cmake .. -DCMAKE_INSTALL_PREFIX=../install -B ../
+$ make -j {num of threads}
+$ make install
+```
+
+Next, you build cat-cc
+```
+$ mkdir build
+$ cd build
+$ cmake ../ -B ../build
+$ make
+```
+
 # Features
 
 ## Sum and Product Types and Match Statements
