@@ -21,10 +21,13 @@ namespace cat
 	struct line_comment : pegtl::seq<pegtl::two<'/'>, pegtl::until< pegtl::eolf >>{};
 
 	// LongComment <- '/*' (!'*/'.)* '*/'
+	struct multi_line_comment_start : pegtl::if_must<pegtl::one<'/'>, pegtl::one<'*'>>{};
+	struct multi_line_comment_end : pegtl::if_must<pegtl::one<'*'>, pegtl::one<'/'>>{};
+	struct multi_line_comment_middle : pegtl::until<multi_line_comment_end, pegtl::any>{};
+
 	struct multi_line_comment : pegtl::if_must<
-		pegtl::seq<pegtl::one<'/'>, pegtl::one<'*'>>,
-		pegtl::not_at<pegtl::seq<pegtl::one<'*'>, pegtl::one<'/'>>>,
-		pegtl::seq<pegtl::one<'*'>, pegtl::one<'/'>>> {};
+		multi_line_comment_start ,
+		multi_line_comment_middle> {};
 
 	// Pragma      <- '#'  (!'\n' .)*
 	struct pragma : pegtl::seq<pegtl::one<'#'>, pegtl::until<pegtl::eolf>>{};
