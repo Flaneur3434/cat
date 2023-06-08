@@ -4,7 +4,7 @@
 
 # What is Cat
 
-A rust transpiler that converts Cat source code to C source code.
+A c++ transpiler that converts Cat source code to C source code.
 
 Use the power of algebraic data types with C idioms.
 

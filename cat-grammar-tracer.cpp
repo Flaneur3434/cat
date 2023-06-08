@@ -1,5 +1,6 @@
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/contrib/trace.hpp>
+#include <tao/pegtl/contrib/utf32.hpp>
 
 #include "cat.hpp"
 
@@ -11,7 +12,7 @@ int main( int argc, char** argv )
       return 1;
 
    pegtl::argv_input<> in( argv, 1 );
-   pegtl::standard_trace< cat::spacing >( in );
+   pegtl::standard_trace< cat::Constant >( in );
 
    return 0;
 }
