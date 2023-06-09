@@ -159,8 +159,9 @@ namespace cat
 		CharAscii >{};
 
 	struct NonAsciiChar : pegtl::disable<
-		pegtl::sor<Char16,
-				   Char32>>{};
+		pegtl::if_must<
+			pegtl::sor<Char16, Char32>,
+			pegtl::not_at<pegtl::blank>>>{};
 
 	struct CharConstant : pegtl::seq<
 		pegtl::one<'\''>,
@@ -196,9 +197,10 @@ namespace cat
 	// Identifiers (user defined names)
     //+---------------------------------
 
-	struct Identifier : pegtl::if_must<pegtl::not_at<Keyword>,
-									   pegtl::sor<pegtl::identifier_first,
-												  NonAsciiChar>>{};
+	struct Identifier : pegtl::if_must<
+		pegtl::seq<pegtl::identifier_first,
+				   pegtl::star<NonAsciiChar>>,
+		pegtl::not_at<Keyword>>{};
 
 	//+--------------------------------
 	// Constants
@@ -296,54 +298,76 @@ namespace cat
 	struct PTR : pegtl::seq<pegtl::one<'-'>, pegtl::one<'>'>>{};
 	struct INC : pegtl::two<'+'>{};
 	struct DEC : pegtl::two<'-'>{};
+
 	struct AND : pegtl::seq<
 		pegtl::one<'&'>,
-		pegtl::if_must<pegtl::not_at<pegtl::one<'&'>>, pegtl::any>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<pegtl::one<'&'>>>>{};
+
 	struct STAR : pegtl::seq<
 		pegtl::one<'*'>,
-		pegtl::if_must<pegtl::not_at<pegtl::one<'='>>, pegtl::any>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<pegtl::one<'='>>>>{};
+
 	struct PLUS : pegtl::seq<
 		pegtl::one<'+'>,
-		pegtl::if_must<pegtl::not_at<
-						   pegtl::sor<pegtl::one<'+'>>, pegtl::one<'='>>,
-					   pegtl::any>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<
+				pegtl::sor<pegtl::one<'+'>>, pegtl::one<'='>>>>{};
+
 	struct MINUS : pegtl::seq<
 		pegtl::one<'-'>,
-		pegtl::if_must<pegtl::not_at<
-						   pegtl::sor<pegtl::one<'-'>>, pegtl::one<'='>, pegtl::one<'>'>>,
-					   pegtl::any>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<
+				pegtl::sor<pegtl::one<'-'>>, pegtl::one<'='>, pegtl::one<'>'>>>>{};
+
 	struct TILDA : pegtl::one<'~'>{};
 	struct BANG : pegtl::seq<
 		pegtl::one<'!'>,
-		pegtl::if_must<pegtl::not_at<pegtl::one<'='>>, pegtl::any>>{};
+		pegtl::if_must<pegtl::any,
+					   pegtl::not_at<pegtl::one<'='>>>>{};
+
 	struct DIV : pegtl::seq<
 		pegtl::one<'/'>,
-		pegtl::if_must<pegtl::not_at<pegtl::one<'='>>, pegtl::any>>{};
+		pegtl::if_must<pegtl::any,
+					   pegtl::not_at<pegtl::one<'='>>>>{};
+
 	struct MOD : pegtl::seq<
 		pegtl::one<'%'>,
-		pegtl::if_must<pegtl::not_at<
-						   pegtl::sor<pegtl::one<'+'>>, pegtl::one<'='>>,
-					   pegtl::any>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<
+				pegtl::sor<pegtl::one<'+'>>, pegtl::one<'='>>>>{};
+
 	struct LEFT : pegtl::seq<
 		pegtl::two<'<'>,
-		pegtl::if_must<pegtl::not_at<
-						   pegtl::sor<pegtl::one<'='>, pegtl::one<'>'>>,
-						   pegtl::any>>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<
+				pegtl::sor<pegtl::one<'='>, pegtl::one<'>'>>>>>{};
+
 	struct RIGHT : pegtl::seq<
 		pegtl::two<'<'>,
-		pegtl::if_must<pegtl::not_at<
-						   pegtl::one<'='>,
-						   pegtl::any>>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<pegtl::one<'='>>>>{};
+
 	struct LT : pegtl::seq<
 		pegtl::one<'<'>,
-		pegtl::if_must<pegtl::not_at<
-						   pegtl::one<'='>,
-						   pegtl::any>>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<pegtl::one<'='>>>>{};
+
 	struct GT : pegtl::seq<
 		pegtl::one<'<'>,
-		pegtl::if_must<pegtl::not_at<
-						   pegtl::one<'='>,
-						   pegtl::any>>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<pegtl::one<'='>>>>{};
+
 	struct LE : pegtl::seq<
 		pegtl::one<'<'>,
 		pegtl::one<'='>>{};
@@ -354,31 +378,38 @@ namespace cat
 	struct BANGEQU : pegtl::seq<
 		pegtl::one<'!'>,
 		pegtl::one<'='>>{};
+
 	struct HAT : pegtl::seq<
 		pegtl::one<'^'>,
-		pegtl::if_must<pegtl::not_at<
-						   pegtl::one<'='>,
-						   pegtl::any>>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<pegtl::one<'='>>>>{};
+
 	struct OR : pegtl::seq<
 		pegtl::one<'|'>,
-		pegtl::if_must<pegtl::not_at<
-						   pegtl::one<'='>,
-						   pegtl::any>>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<pegtl::one<'='>>>>{};
+
 	struct ANDAND : pegtl::two<'&'>{};
 	struct OROR : pegtl::two<'|'>{};
 	struct QUERY : pegtl::one<'?'>{};
+
 	struct COLON : pegtl::seq<
 		pegtl::one<':'>,
-		pegtl::if_must<pegtl::not_at<
-						   pegtl::one<'>'>,
-						   pegtl::any>>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<pegtl::one<'>'>>>>{};
+
 	struct SEMI : pegtl::one<';'>{};
 	struct ELLIPSIS : pegtl::three<'.'>{};
+
 	struct EQU : pegtl::seq<
 		pegtl::one<'='>,
-		pegtl::if_must<pegtl::not_at<
-						   pegtl::one<'='>,
-						   pegtl::any>>>{};
+		pegtl::if_must<
+			pegtl::any,
+			pegtl::not_at<pegtl::one<'='>>>>{};
+
 	struct STAREQU : pegtl::seq<
 		pegtl::one<'*'>,
 		pegtl::one<'='>>{};
@@ -666,6 +697,11 @@ namespace cat
 	struct InitializerList;
 	struct Designation;
 	struct Designator;
+
+	struct Declaration : pegtl::seq<
+		DeclarationSpecifiers,
+		pegtl::opt<InitDeclaratorList>,
+		SEMI>{};
 
 	//+--------------------------------
 	// External definitions
