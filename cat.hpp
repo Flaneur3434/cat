@@ -397,7 +397,7 @@ namespace cat
 	struct LEFTEQU : pegtl::seq<
 		pegtl::two<'<'>,
 		pegtl::one<'='>>{};
-	struct RIGHTEUQ : pegtl::seq<
+	struct RIGHTEQU : pegtl::seq<
 		pegtl::two<'>'>,
 		pegtl::one<'='>>{};
 	struct ANDEQU : pegtl::seq<
@@ -410,5 +410,211 @@ namespace cat
 		pegtl::one<'|'>,
 		pegtl::one<'='>>{};
 	struct COMMA : pegtl::one<','>{};
+
+	//+--------------------------------
+	// Expressions
+	//+--------------------------------
+
+	struct TypeName;
+	struct InitializerList;
+
+	struct PrimaryExpression;
+	struct PostfixExpression;
+	struct ArgumentExpressionList;
+	struct UnaryExpression;
+	struct UnaryOperator;
+	struct CastExpression;
+	struct MultiplicativeExpression;
+	struct AdditiveExpression;
+	struct ShiftExpression;
+	struct RelationalExpression;
+	struct EqualityExpression;
+	struct ANDExpression;
+	struct ExclusiveORExpression;
+	struct InclusiveORExpression;
+	struct LogicalANDExpression;
+	struct LogicalORExpression;
+	struct ConditionalExpression;
+	struct AssignmentExpression;
+	struct AssignmentOperator;
+	struct Expression;
+	struct ConstantExpression;
+
+	struct PrimaryExpression : pegtl::sor<
+		StringLiteral,
+		Constant,
+		Identifier,
+		pegtl::seq<LPAR, Expression, RPAR>>{};
+
+	struct PostfixExpression :
+		pegtl::seq<
+		pegtl::sor<
+			PrimaryExpression,
+			pegtl::seq<
+				LPAR,
+				TypeName,
+				RPAR,
+				LWING,
+				InitializerList,
+				pegtl::opt<COMMA>,
+				RWING>>,
+		pegtl::star<
+			pegtl::sor<
+				pegtl::seq<LBRK, Expression, RBRK>,
+				pegtl::seq<LPAR, pegtl::opt<ArgumentExpressionList>, RPAR>,
+				pegtl::seq<DOT, Identifier>,
+				pegtl::seq<PTR, Identifier>,
+				INC,
+				DEC>>>{};
+
+	struct AssignmentOperator : pegtl::sor<
+		EQU, STAREQU, DIVEQU, MODEQU, PLUSEQU, MINUSEQU, LEFTEQU, RIGHTEQU, ANDEQU, HATEQU, OREQU
+		>{};
+
+	struct AssignmentExpression : pegtl::sor<
+		pegtl::seq<UnaryExpression, AssignmentOperator, AssignmentExpression>,
+		ConditionalExpression>{};
+
+	struct ArgumentExpressionList : pegtl::seq<
+		AssignmentExpression,
+		pegtl::star<pegtl::seq<COMMA, AssignmentExpression>>>{};
+
+	struct UnaryOperator : pegtl::sor<
+		AND, STAR, PLUS, MINUS, TILDA, BANG
+		>{};
+
+	struct UnaryExpression : pegtl::sor<
+		PostfixExpression,
+		pegtl::seq<INC, UnaryExpression>,
+		pegtl::seq<DEC, UnaryExpression>,
+		pegtl::seq<UnaryOperator, CastExpression>,
+		pegtl::seq<SIZEOF, pegtl::sor<UnaryExpression, pegtl::seq<LPAR, TypeName, RPAR>>>>{};
+
+	struct CastExpression : pegtl::sor<
+		pegtl::seq<LPAR, TypeName, RPAR, CastExpression>,
+		UnaryExpression>{};
+
+	struct MultiplicativeExpression : pegtl::seq<
+		CastExpression,
+		pegtl::star<
+			pegtl::seq<
+				pegtl::sor<STAR, DIV, MOD>,
+				CastExpression>>>{};
+
+	struct AdditiveExpression : pegtl::seq<
+		MultiplicativeExpression,
+		pegtl::star<
+			pegtl::seq<
+				pegtl::sor<PLUS, MINUS>,
+				MultiplicativeExpression>>>{};
+
+	struct ShiftExpression : pegtl::seq<
+		AdditiveExpression,
+		pegtl::star<
+			pegtl::seq<
+				pegtl::sor<LEFT, RIGHT>,
+				AdditiveExpression>>>{};
+
+	struct RelationalExpression : pegtl::seq<
+		ShiftExpression,
+		pegtl::star<
+			pegtl::seq<
+				pegtl::sor<LE, GE, LT, GT>,
+				ShiftExpression>>>{};
+
+	struct EqualityExpression : pegtl::seq<
+		RelationalExpression,
+		pegtl::star<
+			pegtl::seq<
+				pegtl::sor<EQUEQU, BANGEQU>,
+				RelationalExpression>>>{};
+
+	struct ANDExpression : pegtl::seq<
+		EqualityExpression,
+		pegtl::star<pegtl::seq<AND, EqualityExpression>>>{};
+
+	struct ExclusiveORExpression : pegtl::seq<
+		ANDExpression,
+		pegtl::star<pegtl::seq<HAT, ANDExpression>>>{};
+
+	struct InclusiveORExpression : pegtl::seq<
+		ExclusiveORExpression,
+		pegtl::star<pegtl::seq<OR, ExclusiveORExpression>>>{};
+
+	struct LogicalANDExpression : pegtl::seq<
+		InclusiveORExpression,
+		pegtl::star<pegtl::seq<ANDAND, InclusiveORExpression>>>{};
+
+	struct LogicalORExpression : pegtl::seq<
+		LogicalANDExpression,
+		pegtl::star<pegtl::seq<OROR, LogicalANDExpression>>>{};
+
+	struct ConditionalExpression : pegtl::seq<
+		LogicalORExpression,
+		pegtl::star<pegtl::seq<QUERY, Expression, COLON, LogicalORExpression>>>{};
+
+	struct Expression : pegtl::seq<
+		AssignmentExpression,
+		pegtl::star<pegtl::seq<COMMA, AssignmentExpression>>>{};
+
+	struct ConstantExpression : ConditionalExpression{};
+
+	//+--------------------------------
+	// Statements
+	//+--------------------------------
+	struct Statement;
+	struct LabeledStatement;
+	struct CompoundStatement;
+	struct ExpressionStatement;
+	struct SelectionStatement;
+	struct IterationStatement;
+	struct JumpStatement;
+
+	//+--------------------------------
+	// Declarations
+	//+--------------------------------
+
+	struct Declaration;
+	struct DeclarationSpecifiers;
+	struct InitDeclaratorList;
+	struct InitDeclarator;
+	struct StorageClassSpecifier;
+	struct TypeSpecifier;
+	struct StructOrUnionSpecifier;
+	struct StructOrUnion;
+	struct StructDeclaration;
+	struct SpecifierQualifierList;
+	struct StructDeclaratorList;
+	struct StructDeclarator;
+	struct EnumSpecifier;
+	struct EnumeratorList;
+	struct Enumerator;
+	struct TypeQualifier;
+	struct FunctionSpecifier;
+	struct Declarator;
+	struct DirectDeclarator;
+	struct Pointer;
+	struct ParameterTypeList;
+	struct ParameterList;
+	struct ParameterDeclaration;
+	struct IdentifierList;
+	struct TypeName;
+	struct AbstractDeclarator;
+	struct DirectAbstractDeclarator;
+	struct TypedefName;
+	struct Initializer;
+	struct InitializerList;
+	struct Designation;
+	struct Designator;
+
+	//+--------------------------------
+	// External definitions
+	//+--------------------------------
+
+	struct TranslationUnit;
+	struct ExternalDeclaration;
+	struct FunctionDefinition;
+	struct DeclarationList;
+
    // clang-format on
 }  // namespace cat
