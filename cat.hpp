@@ -625,8 +625,7 @@ namespace cat
 			Expression,
 			RPAR,
 			Statement,
-			pegtl::opt<
-				pegtl::seq<ELSE, Statement>>>,
+			pegtl::opt<ELSE, Statement>>,
 		pegtl::seq<
 			SWITCH,
 			LPAR,
@@ -711,6 +710,10 @@ namespace cat
 	struct InitDeclaratorList : pegtl::seq<
 		InitDeclarator,
 		pegtl::star<COMMA, InitDeclarator>>{};
+
+	struct InitDeclarator : pegtl::seq<
+		Declarator,
+		pegtl::opt<EQU, Initializer>>{};
 
 	//+--------------------------------
 	// External definitions
