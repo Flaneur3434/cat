@@ -715,6 +715,203 @@ namespace cat
 		Declarator,
 		pegtl::opt<EQU, Initializer>>{};
 
+	struct StorageClassSpecifier : pegtl::sor<
+		TYPEDEF,
+		EXTERN,
+		STATIC,
+		AUTO,
+		REGISTER,
+		pegtl::seq<ATTRIBUTE,
+				   LPAR,
+				   LPAR,
+				   pegtl::star<
+					   pegtl::if_must<
+						   pegtl::any,
+						   pegtl::not_at<RPAR>>>,
+				   RPAR,
+				   RPAR>>{};
+
+	struct TypeSpecifier : pegtl::sor<
+		VOID,
+		CHAR,
+		SHORT,
+		INT,
+		LONG,
+		FLOAT,
+		DOUBLE,
+		SIGNED,
+		UNSIGNED,
+		BOOL,
+		COMPLEX,
+		StructOrUnionSpecifier,
+		EnumSpecifier>{};
+
+	struct StructOrUnionSpecifier : pegtl::seq<
+		StructOrUnion,
+		pegtl::sor<
+			pegtl::seq<
+				pegtl::opt<Identifier>,
+				LWING,
+				pegtl::star<StructDeclaration>,
+				RWING>,
+			Identifier>>{};
+
+	struct StructOrUnion : pegtl::sor<STRUCT, UNION>{};
+
+	struct StructDeclaration : pegtl::seq<
+		pegtl::opt<SpecifierQualifierList, pegtl::opt<StructDeclaratorList>>,
+		SEMI>{};
+
+	struct SpecifierQualifierList : pegtl::sor<
+		pegtl::seq<
+			pegtl::star<TypeQualifier>,
+			TypedefName,
+			pegtl::star<TypeQualifier>>,
+		pegtl::plus<
+			pegtl::sor<
+				TypeSpecifier,
+				TypeQualifier>>>{};
+
+	struct StructDeclaratorList : pegtl::seq<
+		StructDeclarator,
+		pegtl::star<
+			COMMA, StructDeclarator>>{};
+
+	struct StructDeclarator : pegtl::sor<
+		pegtl::seq<
+			pegtl::opt<Declarator>,
+			COLON,
+			ConstantExpression>,
+		Declarator>{};
+
+	struct EnumSpecifier : pegtl::seq<
+		ENUM,
+		pegtl::sor<
+			pegtl::seq<
+				pegtl::opt<Identifier>,
+				LWING,
+				EnumeratorList,
+				pegtl::opt<COMMA>,
+				RWING>,
+			Identifier>>{};
+
+	struct EnumeratorList : pegtl::seq<
+		Enumerator,
+		pegtl::star<
+			COMMA,
+			Enumerator>>{};
+
+	struct Enumerator : pegtl::seq<
+		EnumerationConstant,
+		pegtl::opt<
+			EQU,
+			ConstantExpression>>{};
+
+	struct TypeQualifier : pegtl::sor<
+		CONST,
+		RESTRICT,
+		VOLATILE,
+		pegtl::seq<
+			DECLSPEC, LPAR, Identifier, RPAR>>{};
+
+	struct FunctionSpecifier : pegtl::sor<
+		INLINE, STDCALL>{};
+
+	struct Declarator : pegtl::seq<
+		pegtl::opt<Pointer>,
+		DirectDeclarator>{};
+
+	struct DirectDeclarator : pegtl::seq<
+		pegtl::sor<
+			Identifier,
+			pegtl::seq<
+				LPAR, Declarator, RPAR>>,
+		pegtl::star<
+			pegtl::sor<
+				pegtl::seq<
+					LBRK, pegtl::star<TypeQualifier>, pegtl::opt<AssignmentExpression>, RBRK>,
+				pegtl::seq<
+					LBRK, STATIC, pegtl::star<TypeQualifier>, AssignmentExpression, RBRK>,
+				pegtl::seq<
+					LBRK, pegtl::plus<TypeQualifier>, STATIC, AssignmentExpression, RBRK>,
+				pegtl::seq<
+					LBRK, pegtl::star<TypeQualifier>, STAR, RBRK>,
+				pegtl::seq<
+					LPAR, ParameterTypeList, RPAR>,
+				pegtl::seq<
+					LPAR, pegtl::opt<IdentifierList>, RPAR>>>>{};
+
+	struct Pointer : pegtl::plus<
+		STAR,
+		pegtl::star<TypeQualifier>>{};
+
+	struct ParameterTypeList : pegtl::seq<
+		ParameterList,
+		pegtl::opt<
+			COMMA,
+			ELLIPSIS>>{};
+
+	struct ParameterList : pegtl::seq<
+		ParameterDeclaration,
+		pegtl::star<
+			COMMA,
+			ParameterDeclaration>>{};
+
+	struct ParameterDeclaration : pegtl::seq<
+		DeclarationSpecifiers,
+		pegtl::opt<
+			pegtl::sor<
+				Declarator,
+				AbstractDeclarator>>>{};
+
+	struct IdentifierList : pegtl::seq<
+		Identifier,
+		pegtl::star<COMMA, Identifier>>{};
+
+	struct TypeName : pegtl::seq<
+		SpecifierQualifierList,
+		pegtl::opt<AbstractDeclarator>>{};
+
+	struct AbstractDeclarator : pegtl::sor<
+		pegtl::seq<pegtl::opt<Pointer>, DirectAbstractDeclarator>,
+		Pointer>{};
+
+	struct DirectAbstractDeclarator : pegtl::seq<
+		pegtl::sor<
+			pegtl::seq<LPAR, AbstractDeclarator, RPAR>,
+			pegtl::seq<LBRK,
+					   pegtl::opt<pegtl::sor<AssignmentExpression, STAR>>,
+					   RBRK>,
+			pegtl::seq<LPAR, pegtl::opt<ParameterTypeList>, RPAR>>,
+		pegtl::star<
+		pegtl::sor<
+			pegtl::seq<LBRK,
+					   pegtl::opt<pegtl::sor<AssignmentExpression, STAR>>,
+					   RBRK>,
+			pegtl::seq<LPAR, pegtl::opt<ParameterTypeList>, RPAR>>>>{};
+
+	struct TypedefName : Identifier{};
+
+	struct Initializer : pegtl::sor<
+		AssignmentExpression,
+		pegtl::seq<LWING, InitializerList, pegtl::opt<COMMA>, RWING>>{};
+
+	struct InitializerList : pegtl::seq<
+		pegtl::opt<Designation>,
+		Initializer,
+		pegtl::star<
+			COMMA,
+			pegtl::opt<Designation>,
+			pegtl::opt<Initializer>>>{};
+
+	struct Designation : pegtl::seq<
+		pegtl::plus<Designator>,
+		EQU>{};
+
+	struct Designator : pegtl::sor<
+		pegtl::seq<LBRK, ConstantExpression, RBRK>,
+		pegtl::seq<DOT, Identifier>>{};
+
 	//+--------------------------------
 	// External definitions
 	//+--------------------------------
