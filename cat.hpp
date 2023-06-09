@@ -268,5 +268,147 @@ namespace cat
 			CharacterConstant,
 			EnumerationConstant>>{};
 
+	//+--------------------------------
+	// String Literals
+	//+--------------------------------
+
+	struct StringChar : CharAscii{};
+	struct StringLiteral : pegtl::seq<
+		pegtl::opt<pegtl::one<'L'>>,
+		pegtl::plus<
+			pegtl::one<'\"'>,
+			pegtl::star<StringChar>,
+			pegtl::one<'\"'>,
+			pegtl::star<pegtl::space>
+			>>{};
+
+	//+--------------------------------
+	// Punctuators
+	//+--------------------------------
+
+	struct LBRK : pegtl::one<'['>{};
+	struct RBRK : pegtl::one<']'>{};
+	struct LPAR : pegtl::one<'('>{};
+	struct RPAR : pegtl::one<')'>{};
+	struct LWING : pegtl::one<'{'>{};
+	struct RWING : pegtl::one<'}'>{};
+	struct DOT : pegtl::one<'.'>{};
+	struct PTR : pegtl::seq<pegtl::one<'-'>, pegtl::one<'>'>>{};
+	struct INC : pegtl::two<'+'>{};
+	struct DEC : pegtl::two<'-'>{};
+	struct AND : pegtl::seq<
+		pegtl::one<'&'>,
+		pegtl::if_must<pegtl::not_at<pegtl::one<'&'>>, pegtl::any>>{};
+	struct STAR : pegtl::seq<
+		pegtl::one<'*'>,
+		pegtl::if_must<pegtl::not_at<pegtl::one<'='>>, pegtl::any>>{};
+	struct PLUS : pegtl::seq<
+		pegtl::one<'+'>,
+		pegtl::if_must<pegtl::not_at<
+						   pegtl::sor<pegtl::one<'+'>>, pegtl::one<'='>>,
+					   pegtl::any>>{};
+	struct MINUS : pegtl::seq<
+		pegtl::one<'-'>,
+		pegtl::if_must<pegtl::not_at<
+						   pegtl::sor<pegtl::one<'-'>>, pegtl::one<'='>, pegtl::one<'>'>>,
+					   pegtl::any>>{};
+	struct TILDA : pegtl::one<'~'>{};
+	struct BANG : pegtl::seq<
+		pegtl::one<'!'>,
+		pegtl::if_must<pegtl::not_at<pegtl::one<'='>>, pegtl::any>>{};
+	struct DIV : pegtl::seq<
+		pegtl::one<'/'>,
+		pegtl::if_must<pegtl::not_at<pegtl::one<'='>>, pegtl::any>>{};
+	struct MOD : pegtl::seq<
+		pegtl::one<'%'>,
+		pegtl::if_must<pegtl::not_at<
+						   pegtl::sor<pegtl::one<'+'>>, pegtl::one<'='>>,
+					   pegtl::any>>{};
+	struct LEFT : pegtl::seq<
+		pegtl::two<'<'>,
+		pegtl::if_must<pegtl::not_at<
+						   pegtl::sor<pegtl::one<'='>, pegtl::one<'>'>>,
+						   pegtl::any>>>{};
+	struct RIGHT : pegtl::seq<
+		pegtl::two<'<'>,
+		pegtl::if_must<pegtl::not_at<
+						   pegtl::one<'='>,
+						   pegtl::any>>>{};
+	struct LT : pegtl::seq<
+		pegtl::one<'<'>,
+		pegtl::if_must<pegtl::not_at<
+						   pegtl::one<'='>,
+						   pegtl::any>>>{};
+	struct GT : pegtl::seq<
+		pegtl::one<'<'>,
+		pegtl::if_must<pegtl::not_at<
+						   pegtl::one<'='>,
+						   pegtl::any>>>{};
+	struct LE : pegtl::seq<
+		pegtl::one<'<'>,
+		pegtl::one<'='>>{};
+	struct GE : pegtl::seq<
+		pegtl::one<'>'>,
+		pegtl::one<'='>>{};
+	struct EQUEQU : pegtl::two<'='>{};
+	struct BANGEQU : pegtl::seq<
+		pegtl::one<'!'>,
+		pegtl::one<'='>>{};
+	struct HAT : pegtl::seq<
+		pegtl::one<'^'>,
+		pegtl::if_must<pegtl::not_at<
+						   pegtl::one<'='>,
+						   pegtl::any>>>{};
+	struct OR : pegtl::seq<
+		pegtl::one<'|'>,
+		pegtl::if_must<pegtl::not_at<
+						   pegtl::one<'='>,
+						   pegtl::any>>>{};
+	struct ANDAND : pegtl::two<'&'>{};
+	struct OROR : pegtl::two<'|'>{};
+	struct QUERY : pegtl::one<'?'>{};
+	struct COLON : pegtl::seq<
+		pegtl::one<':'>,
+		pegtl::if_must<pegtl::not_at<
+						   pegtl::one<'>'>,
+						   pegtl::any>>>{};
+	struct SEMI : pegtl::one<';'>{};
+	struct ELLIPSIS : pegtl::three<'.'>{};
+	struct EQU : pegtl::seq<
+		pegtl::one<'='>,
+		pegtl::if_must<pegtl::not_at<
+						   pegtl::one<'='>,
+						   pegtl::any>>>{};
+	struct STAREQU : pegtl::seq<
+		pegtl::one<'*'>,
+		pegtl::one<'='>>{};
+	struct DIVEQU : pegtl::seq<
+		pegtl::one<'/'>,
+		pegtl::one<'='>>{};
+	struct MODEQU : pegtl::seq<
+		pegtl::one<'%'>,
+		pegtl::one<'='>>{};
+	struct PLUSEQU : pegtl::seq<
+		pegtl::one<'+'>,
+		pegtl::one<'='>>{};
+	struct MINUSEQU : pegtl::seq<
+		pegtl::one<'-'>,
+		pegtl::one<'='>>{};
+	struct LEFTEQU : pegtl::seq<
+		pegtl::two<'<'>,
+		pegtl::one<'='>>{};
+	struct RIGHTEUQ : pegtl::seq<
+		pegtl::two<'>'>,
+		pegtl::one<'='>>{};
+	struct ANDEQU : pegtl::seq<
+		pegtl::one<'&'>,
+		pegtl::one<'='>>{};
+	struct HATEQU : pegtl::seq<
+		pegtl::one<'^'>,
+		pegtl::one<'='>>{};
+	struct OREQU : pegtl::seq<
+		pegtl::one<'|'>,
+		pegtl::one<'='>>{};
+	struct COMMA : pegtl::one<','>{};
    // clang-format on
 }  // namespace cat
