@@ -562,6 +562,9 @@ namespace cat
 	//+--------------------------------
 	// Statements
 	//+--------------------------------
+
+	struct Declaration;
+
 	struct Statement;
 	struct LabeledStatement;
 	struct CompoundStatement;
@@ -569,6 +572,63 @@ namespace cat
 	struct SelectionStatement;
 	struct IterationStatement;
 	struct JumpStatement;
+
+	struct Statement : pegtl::sor<
+		LabeledStatement,
+		CompoundStatement,
+		ExpressionStatement,
+		SelectionStatement,
+		IterationStatement,
+		JumpStatement>{};
+
+	struct LabeledStatement : pegtl::sor<
+		pegtl::seq<Identifier, COLON, Statement>,
+		pegtl::seq<CASE, ConstantExpression, COLON, Statement>,
+		pegtl::seq<DEFAULT, COLON, Statement>>{};
+
+	struct CompoundStatement : pegtl::seq<
+		LWING, pegtl::star<pegtl::sor<Declaration, Statement>>, RWING>{};
+
+	struct ExpressionStatement : pegtl::seq<
+		pegtl::opt<Expression>, SEMI>{};
+
+	struct SelectionStatement : pegtl::sor<
+		pegtl::seq<
+			IF,
+			LPAR,
+			Expression,
+			RPAR,
+			Statement,
+			pegtl::opt<
+				pegtl::seq<ELSE, Statement>>>,
+		pegtl::seq<
+			SWITCH,
+			LPAR,
+			Expression,
+			RPAR,
+			Statement>>{};
+
+	struct IterationStatement : pegtl::sor<
+		pegtl::seq<WHILE, LPAR, Expression, RPAR, Statement>,
+		pegtl::seq<DO, Statement, WHILE, LPAR, Expression, RPAR, SEMI>,
+		pegtl::seq<FOR, LPAR,
+				   pegtl::opt<Expression>,
+				   SEMI,
+				   pegtl::opt<Expression>,
+				   SEMI,
+				   pegtl::opt<Expression>,
+				   RPAR, Statement>,
+		pegtl::seq<FOR, LPAR, Declaration,
+				   pegtl::opt<Expression>,
+				   SEMI,
+				   pegtl::opt<Expression>,
+				   RPAR, Statement>>{};
+
+	struct JumpStatement : pegtl::sor<
+		pegtl::seq<GOTO, Identifier, SEMI>,
+		pegtl::seq<CONTINUE, SEMI>,
+		pegtl::seq<BREAK, SEMI>,
+		pegtl::seq<RETURN, pegtl::opt<Expression>, SEMI>>{};
 
 	//+--------------------------------
 	// Declarations
