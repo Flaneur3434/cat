@@ -16,6 +16,7 @@ endif()
 add_executable(cat-cc cat-cc.cpp)
 add_executable(cat-grammar-analysis cat-grammar-analysis.cpp)
 add_executable(cat-grammar-tracer cat-grammar-tracer.cpp)
+add_executable(cat-parse-tree cat-parse-tree.cpp)
 
 # Link ICU library for unicode support
 find_package(ICU REQUIRED COMPONENTS uc)
@@ -23,6 +24,7 @@ find_package(ICU REQUIRED COMPONENTS uc)
 target_link_libraries(cat-cc ICU::uc)
 target_link_libraries(cat-grammar-analysis ICU::uc)
 target_link_libraries(cat-grammar-tracer ICU::uc)
+target_link_libraries(cat-parse-tree ICU::uc)
 
 # Add PEG library
 add_subdirectory(PEGTL)
@@ -34,6 +36,7 @@ include_directories(PEGTL/include)
 target_link_libraries(cat-cc taocpp::pegtl)
 target_link_libraries(cat-grammar-analysis taocpp::pegtl)
 target_link_libraries(cat-grammar-tracer taocpp::pegtl)
+target_link_libraries(cat-parse-tree taocpp::pegtl)
 
 # Set the output directory for the executable
 set_target_properties(cat-cc PROPERTIES
@@ -41,4 +44,4 @@ set_target_properties(cat-cc PROPERTIES
 
 # Compiler flags for this target
 add_compile_options(-std=c++20)
-target_compile_options(cat-cc PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wnon-virtual-dtor -Wnull-dereference -Wuninitialized -Wuninitialized -Wstrict-aliasing -Wpessimizing-move -Wredundant-move)
+target_compile_options(cat-cc PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wnon-virtual-dtor -Wnull-dereference -Wuninitialized -Wuninitialized -Wstrict-aliasing -Wpessimizing-move -Wredundant-move -fuse-ld=mold)

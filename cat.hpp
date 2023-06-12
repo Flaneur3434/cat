@@ -37,8 +37,6 @@ namespace cat
 	// Pragma      <- '#'  (!'\n' .)*
 	struct pragma : pegtl::seq<pegtl::one<'#'>, pegtl::until<pegtl::eolf>>{};
 
-	struct Spacing : pegtl::disable<pegtl::sor<whitespace, line_comment, multi_line_comment, pragma>>{};
-
 	//+--------------
 	// Keywords
 	//+--------------
@@ -71,6 +69,7 @@ namespace cat
 	struct STATIC    : TAO_PEGTL_KEYWORD("static"){};
 	struct STRUCT    : TAO_PEGTL_KEYWORD("struct"){};
 	struct SWITCH    : TAO_PEGTL_KEYWORD("switch"){};
+	struct MATCH    : TAO_PEGTL_KEYWORD("match"){};
 	struct TYPEDEF   : TAO_PEGTL_KEYWORD("typedef"){};
 	struct UNION     : TAO_PEGTL_KEYWORD("union"){};
 	struct UNSIGNED  : TAO_PEGTL_KEYWORD("unsigned"){};
@@ -112,6 +111,7 @@ namespace cat
 										  STATIC,
 										  STRUCT,
 										  SWITCH,
+										  MATCH,
 										  TYPEDEF,
 										  UNION,
 										  UNSIGNED,
@@ -158,10 +158,16 @@ namespace cat
 		tao::pegtl::utf8::any,
 		CharAscii >{};
 
-	struct NonAsciiChar : pegtl::disable<
-		pegtl::if_must<
-			pegtl::sor<Char16, Char32>,
-			pegtl::not_at<pegtl::blank>>>{};
+	struct CPunctuationChar : pegtl::ranges<
+		33, 44,
+		46, 47,
+		58, 64,
+		91, 94,
+		123, 126>{};
+
+	struct NonAsciiChar : pegtl::seq<
+		pegtl::not_at<pegtl::sor<whitespace, CPunctuationChar>>,
+		pegtl::sor<CharAscii, Char16, Char32>>{};
 
 	struct CharConstant : pegtl::seq<
 		pegtl::one<'\''>,
@@ -197,10 +203,11 @@ namespace cat
 	// Identifiers (user defined names)
     //+---------------------------------
 
-	struct Identifier : pegtl::if_must<
-		pegtl::seq<pegtl::identifier_first,
-				   pegtl::star<NonAsciiChar>>,
-		pegtl::not_at<Keyword>>{};
+	struct Identifier : pegtl::seq<
+		pegtl::not_at<Keyword>,
+		pegtl::sor<
+			pegtl::identifier,
+			pegtl::plus<NonAsciiChar>>>{};
 
 	//+--------------------------------
 	// Constants
@@ -585,6 +592,13 @@ namespace cat
 
 	struct ConstantExpression : ConditionalExpression{};
 
+	struct PatternExpression : pegtl::seq<
+		Identifier,
+		whitespace,
+		pegtl::sor<
+			pegtl::seq<LPAR, pegtl::plus<Identifier, COMMA>, Identifier, RPAR>,
+			Identifier>>{};
+
 	//+--------------------------------
 	// Statements
 	//+--------------------------------
@@ -593,6 +607,7 @@ namespace cat
 
 	struct Statement;
 	struct LabeledStatement;
+	struct PatternMatchStatement;
 	struct CompoundStatement;
 	struct ExpressionStatement;
 	struct SelectionStatement;
@@ -611,6 +626,16 @@ namespace cat
 		pegtl::seq<Identifier, COLON, Statement>,
 		pegtl::seq<CASE, ConstantExpression, COLON, Statement>,
 		pegtl::seq<DEFAULT, COLON, Statement>>{};
+
+	struct PatternMatchStatement : pegtl::seq<
+		pegtl::opt<whitespace>,
+		pegtl::one<'|'>,
+		pegtl::space,
+		PatternExpression ,
+		pegtl::space,
+		PTR,
+		pegtl::space,
+		Statement>{};
 
 	struct CompoundStatement : pegtl::seq<
 		LWING, pegtl::star<pegtl::sor<Declaration, Statement>>, RWING>{};
@@ -631,7 +656,18 @@ namespace cat
 			LPAR,
 			Expression,
 			RPAR,
-			Statement>>{};
+			Statement>,
+		pegtl::seq<
+			MATCH,
+			pegtl::opt<whitespace>,
+			LPAR,
+			pegtl::opt<whitespace>,
+			Expression,
+			pegtl::opt<whitespace>,
+			RPAR,
+			pegtl::opt<whitespace>,
+			COLON,
+			pegtl::plus<PatternMatchStatement>>>{};
 
 	struct IterationStatement : pegtl::sor<
 		pegtl::seq<WHILE, LPAR, Expression, RPAR, Statement>,
@@ -748,11 +784,15 @@ namespace cat
 
 	struct StructOrUnionSpecifier : pegtl::seq<
 		StructOrUnion,
+		whitespace,
 		pegtl::sor<
 			pegtl::seq<
 				pegtl::opt<Identifier>,
+				pegtl::opt<whitespace>,
 				LWING,
+				pegtl::opt<whitespace>,
 				pegtl::star<StructDeclaration>,
+				pegtl::opt<whitespace>,
 				RWING>,
 			Identifier>>{};
 
