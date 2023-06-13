@@ -12,7 +12,7 @@ int main( int argc, char** argv )
       return 1;
 
    pegtl::argv_input<> in( argv, 1 );
-   pegtl::standard_trace< cat::Statement >( in );
+   pegtl::standard_trace< cat::SumType >( in );
 
    return 0;
 }

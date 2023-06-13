@@ -411,11 +411,7 @@ namespace cat
 	struct SEMI : pegtl::one<';'>{};
 	struct ELLIPSIS : pegtl::three<'.'>{};
 
-	struct EQU : pegtl::seq<
-		pegtl::one<'='>,
-		pegtl::if_must<
-			pegtl::any,
-			pegtl::not_at<pegtl::one<'='>>>>{};
+	struct EQU : pegtl::one<'='>{};
 
 	struct STAREQU : pegtl::seq<
 		pegtl::one<'*'>,
@@ -701,6 +697,10 @@ namespace cat
 	struct InitDeclarator;
 	struct StorageClassSpecifier;
 	struct TypeSpecifier;
+	struct ProductTypeSpecifier;
+	struct ProductType;
+	struct SumTypeSpecifier;
+	struct SumType;
 	struct StructOrUnionSpecifier;
 	struct StructOrUnion;
 	struct StructDeclaration;
@@ -781,6 +781,44 @@ namespace cat
 		COMPLEX,
 		StructOrUnionSpecifier,
 		EnumSpecifier>{};
+
+	struct ProductTypeSpecifier : pegtl::seq<
+		pegtl::sor<Identifier, TypeSpecifier>,
+		pegtl::star<
+			pegtl::opt<whitespace>,
+			pegtl::one<'*'>,
+			pegtl::opt<whitespace>,
+			ProductTypeSpecifier>>{};
+
+	struct ProductType : pegtl::seq<
+		TAO_PEGTL_STRING("type"),
+		whitespace,
+		Identifier,
+		pegtl::opt<whitespace>,
+		EQU,
+		pegtl::opt<whitespace>,
+		ProductTypeSpecifier>{};
+
+	struct SumTypeSpecifier : pegtl::seq<
+		pegtl::opt<pegtl::one<'|'>, pegtl::opt<whitespace>>,
+		pegtl::sor<Identifier, TypeSpecifier>,
+		pegtl::star<
+			whitespace,
+			TAO_PEGTL_STRING("of"),
+			whitespace,
+			ProductTypeSpecifier>,
+		pegtl::star<
+			pegtl::opt<whitespace>,
+			SumTypeSpecifier>>{};
+
+	struct SumType : pegtl::seq<
+		TAO_PEGTL_STRING("type"),
+		whitespace,
+		Identifier,
+		pegtl::opt<whitespace>,
+		EQU,
+		pegtl::opt<whitespace>,
+		SumTypeSpecifier>{};
 
 	struct StructOrUnionSpecifier : pegtl::seq<
 		StructOrUnion,
